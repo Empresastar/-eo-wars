@@ -1,21 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>Meu Minecraft Bed Wars</title>
     <meta charset="UTF-8">
-    <script type="text/javascript" src="eaglercraft.js"></script>
-</head>
-<body style="margin:0px; background-color:black;">
-    <canvas id="canvas" style="width:100%; height:100vh;"></canvas>
-    <script>
-        // Esse comando "liga" o Minecraft no seu navegador
-        window.addEventListener("load", function() {
-            startMinecraft({
-                container: "canvas",
-                assets: "assets.epk",
-                server: "wss://seu-servidor-de-bedwars.com" 
-            });
-        });
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MineCloneJS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+            }
+        }
     </script>
+</head>
+<body>
+    <div id="game-container">
+        </div>
+    <div id="crosshair"></div> <script type="module" src="js/block.js"></script>
+    <script type="module" src="js/player.js"></script>
+    <script type="module" src="js/world.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
