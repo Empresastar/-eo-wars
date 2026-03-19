@@ -1,11 +1,10 @@
-# 🛏️ Minecraft Bed Wars Web
-Este é um projeto de Minecraft que roda direto no navegador via GitHub Pages.
+# 🛏️ Minecraft Bed Wars Edition
+Este projeto roda Minecraft 1.8.8 direto no navegador via GitHub Pages.
 
-## 🚀 Como Jogar
-1. Acesse o link gerado pelo GitHub Pages.
-2. Clique em Multiplayer.
-3. Adicione um servidor de Bed Wars (ex: `wss://mc.zenith.ac`).
+## 📁 Estrutura:
+- `index.html`: Onde o jogo abre.
+- `classes.js`: O motor do jogo (precisa ser baixado via Eaglercraft).
+- `assets/`: Texturas e sons.
 
-## 🛠️ Tecnologias
-- HTML5 / JavaScript
-- Eaglercraft Engine
+## 🕹️ Como rodar:
+Ative o **GitHub Pages** nas configurações para gerar o link.
