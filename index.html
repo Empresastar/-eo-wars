@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meu Minecraft Bed Wars</title>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="eaglercraft.js"></script>
+</head>
+<body style="margin:0px; background-color:black;">
+    <canvas id="canvas" style="width:100%; height:100vh;"></canvas>
+    <script>
+        // Esse comando "liga" o Minecraft no seu navegador
+        window.addEventListener("load", function() {
+            startMinecraft({
+                container: "canvas",
+                assets: "assets.epk",
+                server: "wss://seu-servidor-de-bedwars.com" 
+            });
+        });
+    </script>
+</body>
+</html>
