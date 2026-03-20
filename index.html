@@ -2,48 +2,40 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MineClone 3D - Teste Direto</title>
+    <title>MineClone 3D Corrigido</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; }
         #crosshair {
             position: absolute; top: 50%; left: 50%;
             width: 10px; height: 10px; background: white;
             border-radius: 50%; transform: translate(-50%, -50%);
-            z-index: 10; pointer-events: none;
+            z-index: 10; pointer-events: none; border: 1px solid black;
         }
     </style>
 </head>
 <body>
     <div id="crosshair"></div>
-
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
         {
-            "imports": {
-                "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
-            }
+            "imports": { "three": "https://unpkg.com/three@0.158.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/" }
         }
     </script>
-
     <script type="module">
         import * as THREE from 'three';
         import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
-        // 1. CENA E CÂMERA
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-        // 2. RENDERIZADOR
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 3. LUZ
         const light = new THREE.AmbientLight(0xffffff, 1);
         scene.add(light);
 
-        // 4. CHÃO (O MUNDO 3D)
+        // Gera o chão 3D
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         for (let x = -10; x < 10; x++) {
             for (let z = -10; z < 10; z++) {
@@ -54,24 +46,15 @@
             }
         }
 
-        // 5. CONTROLES (MIRA 3D)
         const controls = new PointerLockControls(camera, document.body);
         document.addEventListener('click', () => controls.lock());
         camera.position.set(0, 2, 5);
 
-        // 6. LOOP DE ANIMAÇÃO
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
         }
         animate();
-
-        // Ajuste de Janela
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
