@@ -1,0 +1,29 @@
+body {
+    margin: 0;
+    overflow: hidden; /* Esconde as barras de rolagem */
+    background-color: #000;
+}
+
+#game-container {
+    width: 100vw;   /* 100% da largura da tela */
+    height: 100vh;  /* 100% da altura da tela */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    display: block; /* Remove o espaço extra abaixo do canvas */
+}
+
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%; /* Faz a mira ser um círculo */
+    transform: translate(-50%, -50%); /* Centraliza a mira */
+    z-index: 1000;
+}
