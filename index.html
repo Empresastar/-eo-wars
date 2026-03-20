@@ -1,109 +1,194 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>MineClone - Versão Fix</title>
+    <title>Bedwars 3D - Corrigido</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
+        body { margin: 0; overflow: hidden; font-family: sans-serif; }
         #crosshair {
-            position: absolute; top: 50%; left: 50%;
-            width: 10px; height: 10px; background: white;
-            border-radius: 50%; transform: translate(-50%, -50%);
-            z-index: 10; pointer-events: none; border: 1px solid black;
+            position: fixed; top: 50%; left: 50%;
+            width: 20px; height: 20px; margin: -10px;
+            z-index: 10; pointer-events: none;
+        }
+        #crosshair::before, #crosshair::after { content: ""; position: absolute; background: white; }
+        #crosshair::before { left: 9px; top: 0; width: 2px; height: 20px; }
+        #crosshair::after { top: 9px; left: 0; width: 20px; height: 2px; }
+
+        #hud {
+            position: fixed; bottom: 20px; left: 20px;
+            color: white; background: rgba(0,0,0,0.7);
+            padding: 15px; border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="crosshair"></div>
 
-    <script type="module">
-        // IMPORTANTE: Usamos a URL completa para o navegador não se perder
-        import * as THREE from 'https://unpkg.com/three@0.149.0/build/three.module.js';
-        import { PointerLockControls } from 'https://unpkg.com/three@0.149.0/examples/jsm/controls/PointerLockControls.js';
+<div id="hud">
+    <div>Ferro: <span id="iron-count">0</span></div>
+    <div>Ouro: <span id="gold-count">0</span></div>
+    <div>Blocos: <span id="block-count">64</span></div>
+    <div id="shop-msg" style="color: yellow; display: none;">[E] ABRIR LOJA</div>
+</div>
 
-        let scene, camera, renderer, controls;
-        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-        let velocity = new THREE.Vector3();
-        let prevTime = performance.now();
+<div id="crosshair"></div>
 
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB);
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            
-            try {
-                // Configurações para PC Antigo (Intel 4 Series)
-                renderer = new THREE.WebGLRenderer({ 
-                    antialias: false, 
-                    precision: "mediump" 
-                });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                document.body.appendChild(renderer.domElement);
-            } catch (e) {
-                alert("Seu computador não suporta WebGL moderno. Tente o Chrome ou Firefox atualizados.");
-                return;
-            }
+<script>
+// --- CONFIGURAÇÃO ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-            // Luz e Chão Simples (Otimizado)
-            scene.add(new THREE.AmbientLight(0xffffff, 1));
-            const geo = new THREE.BoxGeometry(1, 1, 1);
-            const mat = new THREE.MeshBasicMaterial({ color: 0x48a044 });
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(10, 20, 10);
+scene.add(light, new THREE.AmbientLight(0x404040));
 
-            for (let x = -8; x < 8; x++) {
-                for (let z = -8; z < 8; z++) {
-                    const cube = new THREE.Mesh(geo, mat);
-                    cube.position.set(x, 0, z);
-                    scene.add(cube);
-                }
-            }
+// --- VARIÁVEIS DE JOGO ---
+let blocks = [];
+let drops = [];
+let inventory = { iron: 0, gold: 0, blocks: 64 };
+let velocityY = 0;
+const gravity = -0.01;
+const jumpForce = 0.15;
+const playerHeight = 2;
 
-            // Controles
-            controls = new PointerLockControls(camera, document.body);
-            document.addEventListener('click', () => controls.lock());
+// --- MUNDO ---
+function createCube(x, y, z, color, type = 'block') {
+    const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.MeshLambertMaterial({ color })
+    );
+    mesh.position.set(x, y, z);
+    mesh.userData.type = type;
+    scene.add(mesh);
+    blocks.push(mesh);
+    return mesh;
+}
 
-            const onKeyDown = (e) => {
-                if (e.code === 'KeyW') moveForward = true;
-                if (e.code === 'KeyS') moveBackward = true;
-                if (e.code === 'KeyA') moveLeft = true;
-                if (e.code === 'KeyD') moveRight = true;
-            };
-            const onKeyUp = (e) => {
-                if (e.code === 'KeyW') moveForward = false;
-                if (e.code === 'KeyS') moveBackward = false;
-                if (e.code === 'KeyA') moveLeft = false;
-                if (e.code === 'KeyD') moveRight = false;
-            };
-            document.addEventListener('keydown', onKeyDown);
-            document.addEventListener('keyup', onKeyUp);
+// Chão Base
+for(let x=-5; x<=5; x++) {
+    for(let z=-5; z<=5; z++) {
+        createCube(x, 0, z, 0x55aa55);
+    }
+}
 
-            camera.position.set(0, 2, 5);
-            animate();
+// Cama (Vermelha)
+createCube(0, 1, -2, 0xff0000, 'bed');
+// NPC Loja (Azul)
+const npc = createCube(3, 1, 0, 0x0000ff, 'npc');
+// Gerador (Cinza Escuro)
+const genPos = new THREE.Vector3(-3, 1, 0);
+createCube(genPos.x, 0.5, genPos.z, 0x333333);
+
+// --- GERADOR DE ITENS ---
+function spawnItem() {
+    const isGold = Math.random() > 0.8;
+    const item = new THREE.Mesh(
+        new THREE.SphereGeometry(0.2),
+        new THREE.MeshBasicMaterial({ color: isGold ? 0xffd700 : 0xdddddd })
+    );
+    item.position.copy(genPos).add(new THREE.Vector3(0, 1, 0));
+    item.userData = { type: isGold ? 'gold' : 'iron' };
+    scene.add(item);
+    drops.push(item);
+}
+setInterval(spawnItem, 2000);
+
+// --- CONTROLES ---
+let keys = {};
+document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+let yaw = 0, pitch = 0;
+document.body.addEventListener('click', () => document.body.requestPointerLock());
+document.addEventListener('mousemove', (e) => {
+    if (document.pointerLockElement !== document.body) return;
+    yaw -= e.movementX * 0.002;
+    pitch -= e.movementY * 0.002;
+    pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+    camera.rotation.set(pitch, yaw, 0, 'YXZ');
+});
+
+camera.position.set(0, 5, 5);
+
+// --- LOOP PRINCIPAL ---
+function update() {
+    // 1. Movimento e Gravidade
+    const speed = 0.12;
+    const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+    dir.y = 0; dir.normalize();
+    const side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0,1,0)).normalize();
+
+    if(keys['w']) camera.position.add(dir.clone().multiplyScalar(speed));
+    if(keys['s']) camera.position.add(dir.clone().multiplyScalar(-speed));
+    if(keys['a']) camera.position.add(side.clone().multiplyScalar(-speed));
+    if(keys['d']) camera.position.add(side.clone().multiplyScalar(speed));
+
+    // Pulo e Gravidade
+    velocityY += gravity;
+    camera.position.y += velocityY;
+
+    // Colisão simples com o chão (y=0)
+    if(camera.position.y < playerHeight) {
+        camera.position.y = playerHeight;
+        velocityY = 0;
+        if(keys[' ']) velocityY = jumpForce; // Espaço para pular
+    }
+
+    // 2. Coleta de Itens
+    drops.forEach((item, index) => {
+        const dist = camera.position.distanceTo(item.position);
+        if(dist < 1.5) {
+            inventory[item.userData.type]++;
+            document.getElementById(item.userData.type + '-count').innerText = inventory[item.userData.type];
+            scene.remove(item);
+            drops.splice(index, 1);
         }
+    });
 
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = performance.now();
-            
-            if (controls.isLocked) {
-                const delta = (time - prevTime) / 1000;
-                velocity.x -= velocity.x * 10.0 * delta;
-                velocity.z -= velocity.z * 10.0 * delta;
+    // 3. Proximidade do NPC
+    const distToNPC = camera.position.distanceTo(npc.position);
+    document.getElementById('shop-msg').style.display = distToNPC < 3 ? 'block' : 'none';
+}
 
-                let dirZ = Number(moveForward) - Number(moveBackward);
-                let dirX = Number(moveRight) - Number(moveLeft);
+// --- CLIQUES (INVERTIDOS: Esq Coloca / Dir Quebra) ---
+const raycaster = new THREE.Raycaster();
+window.addEventListener('mousedown', (e) => {
+    if (document.pointerLockElement !== document.body) return;
+    raycaster.setFromCamera({x:0, y:0}, camera);
+    const intersects = raycaster.intersectObjects(blocks);
 
-                if (moveForward || moveBackward) velocity.z -= dirZ * 400.0 * delta;
-                if (moveLeft || moveRight) velocity.x -= dirX * 400.0 * delta;
-
-                controls.moveRight(-velocity.x * delta);
-                controls.moveForward(-velocity.z * delta);
-            }
-            prevTime = time;
-            renderer.render(scene, camera);
+    if(intersects.length > 0) {
+        const hit = intersects[0];
+        // ESQUERDO = COLOCAR
+        if(e.button === 0 && inventory.blocks > 0) {
+            const pos = hit.object.position.clone().add(hit.face.normal);
+            createCube(pos.x, pos.y, pos.z, 0xdddddd);
+            inventory.blocks--;
+            document.getElementById('block-count').innerText = inventory.blocks;
         }
+        // DIREITO = QUEBRAR
+        if(e.button === 2) {
+            if(hit.object.position.y > 0) { // Não quebrar o chão
+                scene.remove(hit.object);
+                blocks = blocks.filter(b => b !== hit.object);
+            }
+        }
+    }
+});
 
-            init();
-    </script>
+window.addEventListener('contextmenu', e => e.preventDefault());
+
+function animate() {
+    requestAnimationFrame(animate);
+    update();
+    renderer.render(scene, camera);
+}
+animate();
+</script>
 </body>
 </html>
