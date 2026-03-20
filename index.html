@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MineClone - Fix Import</title>
+    <title>MineClone - Versão Fix</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; }
         #crosshair {
@@ -17,20 +17,23 @@
     <div id="crosshair"></div>
 
     <script type="module">
-        // Importando diretamente da URL para o navegador não se perder
+        // IMPORTANTE: Usamos a URL completa para o navegador não se perder
         import * as THREE from 'https://unpkg.com/three@0.149.0/build/three.module.js';
         import { PointerLockControls } from 'https://unpkg.com/three@0.149.0/examples/jsm/controls/PointerLockControls.js';
 
         let scene, camera, renderer, controls;
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let velocity = new THREE.Vector3();
+        let prevTime = performance.now();
 
         function init() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87CEEB);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 2, 5);
-
+            
             try {
+                // Configurações para PC Antigo (Intel 4 Series)
                 renderer = new THREE.WebGLRenderer({ 
                     antialias: false, 
                     precision: "mediump" 
@@ -38,35 +41,69 @@
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 document.body.appendChild(renderer.domElement);
             } catch (e) {
-                alert("Erro ao iniciar WebGL. Tente usar o navegador Firefox ou atualize seus drivers.");
+                alert("Seu computador não suporta WebGL moderno. Tente o Chrome ou Firefox atualizados.");
                 return;
             }
 
-            // Luz e Chão simples
+            // Luz e Chão Simples (Otimizado)
             scene.add(new THREE.AmbientLight(0xffffff, 1));
             const geo = new THREE.BoxGeometry(1, 1, 1);
             const mat = new THREE.MeshBasicMaterial({ color: 0x48a044 });
 
-            for (let x = -5; x < 5; x++) {
-                for (let z = -5; z < 5; z++) {
+            for (let x = -8; x < 8; x++) {
+                for (let z = -8; z < 8; z++) {
                     const cube = new THREE.Mesh(geo, mat);
                     cube.position.set(x, 0, z);
                     scene.add(cube);
                 }
             }
 
+            // Controles
             controls = new PointerLockControls(camera, document.body);
             document.addEventListener('click', () => controls.lock());
 
+            const onKeyDown = (e) => {
+                if (e.code === 'KeyW') moveForward = true;
+                if (e.code === 'KeyS') moveBackward = true;
+                if (e.code === 'KeyA') moveLeft = true;
+                if (e.code === 'KeyD') moveRight = true;
+            };
+            const onKeyUp = (e) => {
+                if (e.code === 'KeyW') moveForward = false;
+                if (e.code === 'KeyS') moveBackward = false;
+                if (e.code === 'KeyA') moveLeft = false;
+                if (e.code === 'KeyD') moveRight = false;
+            };
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+
+            camera.position.set(0, 2, 5);
             animate();
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            if(renderer) renderer.render(scene, camera);
+            const time = performance.now();
+            
+            if (controls.isLocked) {
+                const delta = (time - prevTime) / 1000;
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
+
+                let dirZ = Number(moveForward) - Number(moveBackward);
+                let dirX = Number(moveRight) - Number(moveLeft);
+
+                if (moveForward || moveBackward) velocity.z -= dirZ * 400.0 * delta;
+                if (moveLeft || moveRight) velocity.x -= dirX * 400.0 * delta;
+
+                controls.moveRight(-velocity.x * delta);
+                controls.moveForward(-velocity.z * delta);
+            }
+            prevTime = time;
+            renderer.render(scene, camera);
         }
 
-        init();
+            init();
     </script>
 </body>
 </html>
