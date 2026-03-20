@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bedwars 3D - GitHub Edition</title>
+    <title>Bedwars 3D - Java Sneak Edition</title>
     <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
 </head>
 <body>
-
     <div id="hud">
         <div>Ferro: <span id="iron-count">0</span></div>
-        <div>Ouro: <span id="gold-count">0</span></div>
-        <div>Blocos: <span id="block-count">64</span></div>
-        <div id="shop-msg" style="color: yellow; display: none;">[E] ABRIR LOJA</div>
+        <div>Blocos: <span id="count-blocks">64</span></div>
     </div>
-
     <div id="crosshair"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-    <script src="game.js"></script>
+    <script type="module" src="game.js"></script>
 </body>
 </html>
